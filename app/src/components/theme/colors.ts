@@ -1,0 +1,18 @@
+export const CoreColors = {
+  white: '#ffffff',
+  textPrimary: '#111416',
+  numbersPrimary: '#57626F',
+  numberSecondary: '#FFEAF1',
+  greyDefault: '#EFF2F7',
+  greyHover: '#DDDDDD',
+  greyPressed: '#D4D4D4',
+  greyDisable: '#FFFFFF',
+  purpleDefault: '#6115CD',
+  purpleHover: '#4E11A4',
+  purplePressed: '#3A0D7B',
+  purpleDisable: '#D5C9FF',
+  pinkDefault: '#FF2B75',
+  pinkHover: '#EA276B',
+  pinkPressed: '#DE2465',
+  pinkDisable: '#FFBAD2',
+}
