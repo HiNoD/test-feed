@@ -9,6 +9,7 @@ import ActionButton from '../../../shared/ActionButton/ActionButton';
 import { BorderRadius, CoreColors, Spacing } from '../../../theme';
 import ImagePost from '../../../shared/ImagePost/ImagePost';
 import Typography from '../../../shared/Typography/Typography';
+import { Skeleton } from '../../../shared/Skeleton/Skeleton';
 
 interface PostCardProps {
   post: Post;
@@ -33,16 +34,22 @@ const PostCard = observer((props: PostCardProps) => {
         </View>
       )}
 
-      <View style={styles.title}>
-        <Typography text={post.title} type={'title'} color={CoreColors.textPrimary}/>
-      </View>
-      {!isOpenedMore ? 
-        <Text style={styles.body} numberOfLines={3}>
-          {post.preview}{isNeedOpenMore ? <Text onPress={() => setIsOpenedMore(!isOpenedMore)} style={{color: CoreColors.purpleDefault}}>{'Показать еще'}</Text> : <></>}
-        </Text> :
-        <Text style={styles.body}>
-          {post.body}
-        </Text>
+      {post.tier === 'free' ? 
+        <>
+          <View style={styles.title}>
+            <Typography text={post.title} type={'title'} color={CoreColors.textPrimary}/>
+          </View>
+          {!isOpenedMore ? 
+            <Text style={styles.body} numberOfLines={3}>
+              {post.preview}{isNeedOpenMore ? <Text onPress={() => setIsOpenedMore(!isOpenedMore)} style={{color: CoreColors.purpleDefault}}>{'Показать еще'}</Text> : <></>}
+            </Text> :
+            <Text style={styles.body}>
+              {post.body}
+            </Text>
+          }
+        </>
+        : 
+        <Skeleton />
       }
 
       <View style={styles.footer}>
