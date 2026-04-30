@@ -1,13 +1,16 @@
-import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { getPosts, getPostById } from '../services/axios';
-import { postsStore } from '../stores/postsStore';
 import { ErrorResponse, Post, PostsResponse } from '../types/types';
-import { useEffect } from 'react';
 
-export const usePosts = (shouldError: boolean) => {
-  const query = useInfiniteQuery<PostsResponse, ErrorResponse, Post[], [string, {shouldError: boolean}], string>({
-    queryKey: ['posts', { shouldError }],
-    queryFn: ({ pageParam }) => getPosts({ pageParam, shouldError }),
+export type PostType = 'all' | 'free' | 'paid';
+
+export const usePosts = (type: PostType, shouldError: boolean) => {
+  const query = useInfiniteQuery<PostsResponse, ErrorResponse, Post[], [string, PostType, {shouldError: boolean}], string>({
+    queryKey: ['posts', type, { shouldError }],
+    queryFn: ({ pageParam, queryKey }) => {
+      const [_key, postType, { shouldError }] = queryKey;
+      return getPosts({ pageParam, type: postType, shouldError });
+    },
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 5 * 60 * 1000,
@@ -18,3 +21,14 @@ export const usePosts = (shouldError: boolean) => {
 
   return query;
 };
+
+export const useSinglePost = (postId: string, post: Post) => {
+  const query = useQuery<Post, Error, Post, (string | number)[]>({
+    queryKey: ['post', postId],
+    queryFn: () => getPostById(postId),
+    placeholderData: post,
+    staleTime: 0,
+  });
+
+  return query;
+}

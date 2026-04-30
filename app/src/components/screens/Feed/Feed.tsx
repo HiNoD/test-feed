@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePosts } from "@/app/src/hooks/usePosts";
+import { PostType, usePosts } from "@/app/src/hooks/usePosts";
 import { observer } from 'mobx-react-lite';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Switch, Image } from "react-native";
 import PostCard from './PostCard/PostCard';
@@ -7,9 +7,12 @@ import Button from '../../shared/Button/Button';
 import Typography from '../../shared/Typography/Typography';
 import { CoreColors, Spacing } from '../../theme';
 import { useQueryClient } from '@tanstack/react-query';
+import { FeedFilters } from './FeedFilters/FeedFilters';
+import { useRouter } from 'expo-router';
 
 const FeedScreen = observer(() => {
   const [isErrorMode, setIsErrorMode] = useState(false);
+  const [filter, setFilter] = useState<PostType>('all');
   const queryClient = useQueryClient();
   const { 
     data: posts,
@@ -21,7 +24,7 @@ const FeedScreen = observer(() => {
     isLoading,
     isError,
     error,
-  } = usePosts(isErrorMode);
+  } = usePosts(filter, isErrorMode);
   const sourceImage = require('../../../images/illustration.png');
 
   const loadMore = () => {
@@ -30,13 +33,15 @@ const FeedScreen = observer(() => {
     }
   };
 
+  const router = useRouter();
+
   const onRefresh = async () => {
     await queryClient.resetQueries({ queryKey: ['posts'] });
     refetch();
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ width: '100%', flex: 1 }}>
       <View style={styles.debugPanel}>
         <Text style={styles.debugText}>
           {isErrorMode ? "🔴 Режим ошибки" : "🟢 Режим ленты"}
@@ -52,20 +57,30 @@ const FeedScreen = observer(() => {
       ) : isError ? (
         <View style={styles.center}>
           <Image source={sourceImage} style={styles.errorImage} />
-          <Typography text={'Не удалось загрузить публикацию'} type={'title'} color={CoreColors.textPrimary}/>
+          <Typography text={'Не удалось загрузить публикации'} type={'title'} color={CoreColors.textPrimary}/>
           <Button text={'Повторить'} onPress={() => refetch()} style={styles.button}/>
         </View>
       ) : (
-        <FlatList 
-          data={posts}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => <PostCard post={item}/>}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh}/>}
-          ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
-          refreshing={false}
-        />
+        <>
+          <FeedFilters active={filter} onChange={setFilter} />
+          <FlatList 
+            data={posts}
+            keyExtractor={item => item.id}
+            renderItem={({item}) => <PostCard post={item} onPress={() => router.push({
+              pathname: `/src/components/screens/Feed/PostDetails/PostDetails`,
+              params: {
+                postId: item.id,
+                post: JSON.stringify(item),
+              }
+            })}/>}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh}/>}
+            ListHeaderComponent={isFetchingNextPage && !isLoading ? <ActivityIndicator /> : null}
+            ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
+            refreshing={false}
+          />
+        </>
       )}      
     </View>
   );
@@ -79,7 +94,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     backgroundColor: '#f0f0f0',
     borderBottomWidth: 1,
-    borderColor: '#ddd'
+    borderColor: '#ddd',
   },
   debugText: { 
     fontWeight: 'bold',

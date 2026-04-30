@@ -10,22 +10,26 @@ import { BorderRadius, CoreColors, Spacing } from '../../../theme';
 import ImagePost from '../../../shared/ImagePost/ImagePost';
 import Typography from '../../../shared/Typography/Typography';
 import { Skeleton } from '../../../shared/Skeleton/Skeleton';
+import { useLikeMutation } from '@/app/src/services/axios';
 
 interface PostCardProps {
   post: Post;
+  onPress?: () => void;
+  isDetail?: boolean;
 }
 
 const PostCard = observer((props: PostCardProps) => {
-  const { post } = props;
-  const [isNeedOpenMore, setIsNeedOpenMore] = useState<boolean>(post.preview.length > 120 ? true : false);
+  const { post, onPress, isDetail } = props;
+  const [isNeedOpenMore, setIsNeedOpenMore] = useState<boolean>(post.preview?.length > 120 ? true : false);
   const [isOpenedMore, setIsOpenedMore] = useState<boolean>(false);
+  const mutation = useLikeMutation(post.id);
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.header}>
-        {post.author.avatarUrl && <Avatar uri={post.author.avatarUrl}/>}
+        {post.author?.avatarUrl && <Avatar uri={post.author.avatarUrl}/>}
         <View style={styles.avatarName}>
-          <Typography color={CoreColors.textPrimary} text={post.author.displayName} type={'avatar'}/>
+          <Typography color={CoreColors.textPrimary} text={post.author?.displayName} type={'avatar'}/>
         </View>
       </View>
       {post.coverUrl && (
@@ -39,7 +43,7 @@ const PostCard = observer((props: PostCardProps) => {
           <View style={styles.title}>
             <Typography text={post.title} type={'title'} color={CoreColors.textPrimary}/>
           </View>
-          {!isOpenedMore ? 
+          {!isOpenedMore && !isDetail ? 
             <Text style={styles.body} numberOfLines={3}>
               {post.preview}{isNeedOpenMore ? <Text onPress={() => setIsOpenedMore(!isOpenedMore)} style={{color: CoreColors.purpleDefault}}>{'Показать еще'}</Text> : <></>}
             </Text> :
@@ -47,19 +51,22 @@ const PostCard = observer((props: PostCardProps) => {
               {post.body}
             </Text>
           }
+          {isDetail && <Text style={styles.body}>
+              {post.body}
+            </Text>}
         </>
         : 
         <Skeleton />
       }
 
       <View style={styles.footer}>
-        <ActionButton type={'like'} count={post.likesCount} isLiked={post.isLiked}/>
+        <ActionButton type={'like'} count={post.likesCount} isLiked={post.isLiked} onPress={() => mutation.mutate(!post.isLiked)} isNeedBackground={true}/>
         <View style={styles.commentIcon}>
-          <ActionButton type={'comment'} count={post.commentsCount}/>
+          <ActionButton type={'comment'} count={post.commentsCount} isNeedBackground={true}/>
         </View>
       </View>
 
-    </View>
+    </TouchableOpacity>
   );
 });
 
